@@ -10,7 +10,7 @@
 ```
 kubernetes.io/role/internal-elb = 1
 ```
-5. Create an internet gateway and attach it to the vpc we created earlier
+5. Make sure the internet gateway is attached to the vpc we created earlier
 6. Create a NAT gateway in one of the public subnets
 7. Create a public route table and a private route table
 8. Add the following route to the public route table
