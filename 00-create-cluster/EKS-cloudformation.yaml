@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Amazon EKS Sample VPC - Private and Public subnets'
+Description: 'Amazon EKS Cluster with private endpoint and OIDC provider'
 
 Parameters:
   VpcBlock:
