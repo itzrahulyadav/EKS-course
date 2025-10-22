@@ -56,6 +56,10 @@ metadata:
   name: nginx-service
   labels:
     app: nginx-demo
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    service.beta.kubernetes.io/aws-load-balancer-type: external
 spec:
   type: LoadBalancer
   ports:
