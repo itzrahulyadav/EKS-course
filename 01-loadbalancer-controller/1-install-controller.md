@@ -25,12 +25,12 @@ aws iam create-policy \
         {
             "Effect": "Allow",
             "Principal": {
-                "Federated": "arn:aws:iam::533267257785:oidc-provider/oidc.eks.ap-south-1.amazonaws.com/id/F6CC71F88CDC090789BAFEAD32E43E0D"
+                "Federated": "<OIDC_ARN>"
             },
             "Action": "sts:AssumeRoleWithWebIdentity",
             "Condition": {
                 "StringEquals": {
-                    "oidc.eks.ap-south-1.amazonaws.com/id/F6CC71F88CDC090789BAFEAD32E43E0D:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller"
+                    "<Provider_name>:sub": "system:serviceaccount:kube-system:<service_account_name>"
                 }
             }
         }
