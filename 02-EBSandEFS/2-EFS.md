@@ -66,3 +66,60 @@ aws efs create-mount-target \
     --security-groups <security_group_id>
 
 ```
+
+11. Create storage class for efs
+
+```
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: efs-sc
+provisioner: efs.csi.aws.com
+allowVolumeExpansion: true
+parameters:
+  provisioningMode: efs-ap
+  fileSystemId: fs-92107410
+  directoryPerms: "700"
+
+```
+
+12.  Create persistent volume claim
+
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: efs-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 5Gi
+```
+
+13. Create a pod
+
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: efs-app
+spec:
+  containers:
+    - name: app
+      image: nginx
+      command: ["/bin/sh"]
+      args: ["-c", "while true; do echo $(date -u) >> /data/out; sleep 5; done"]
+      volumeMounts:
+        - name: persistent-storage
+          mountPath: /data
+  volumes:
+    - name: persistent-storage
+      persistentVolumeClaim:
+        claimName: efs-claim
+
+```
+
+
