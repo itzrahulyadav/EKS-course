@@ -111,7 +111,7 @@ spec:
     - name: app
       image: nginx
       command: ["/bin/sh"]
-      args: ["-c", "while true; do echo $(date -u) >> /data/out; sleep 5; done"]
+      args: ["-c", "while true; do echo $(date -u) >> /data/out; sleep 10; done"]
       volumeMounts:
         - name: persistent-storage
           mountPath: /data
@@ -122,4 +122,33 @@ spec:
 
 ```
 
+14. Create a deployment
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: persistent-storage-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-persistent-app
+  template:
+    metadata:
+      labels:
+        app: my-persistent-app
+    spec:
+      containers:
+      - name: app-container
+        image: nginx
+        volumeMounts:
+        - name: persistent-storage
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: persistent-storage
+        persistentVolumeClaim:
+          claimName: efs-claim
+
+```
 
