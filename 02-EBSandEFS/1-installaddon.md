@@ -40,6 +40,7 @@ aws iam attach-role-policy \
   --policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
 
 ```
+- Install the EBS add-on on the Cluster using the role created
 
 4. Create a storage class
 ```
