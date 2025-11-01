@@ -39,6 +39,8 @@ aws iam attach-role-policy \
 
 ```
 
+- Install the EFS add-on on the cluster using the role created
+
 4. Note down the following details to create a efs volume which will be used for dynamic volume provisioning
  - VPC id of the cluster
  - CIDR range of the VPC
