@@ -1,3 +1,9 @@
+## Create a deployment
+
+```
+kubectl create deployment stress-test --image=busybox -- sleep 100000
+```
+
 # Create a role for cluster autoscaler
 
 1. Create a `trust-policy.json`
@@ -29,7 +35,7 @@
 aws iam create-role \
   --role-name AutoscalerRole \
   --assume-role-policy-document file://trust-policy.json \
-  --description "IAM role for EBS CSI driver in EKS"
+  --description "IAM role for Cluster Autoscaler"
 
 ```
 
@@ -94,20 +100,11 @@ metadata:
   name: cluster-autoscaler-sa
   namespace: kube-system
   annotations:
-    eks.amazonaws.com/role-arn: <load balancer controller role arn>
-
-```
-6. Tag auto scaling group
-
-```
-aws autoscaling create-or-update-tags --tags \
-ResourceId=<your-asg-name>,ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/enabled,Value=true,PropagateAtLaunch=true \
-ResourceId=<your-asg-name>,ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/<your-cluster-name>,Value=true,PropagateAtLaunch=true
-
+    eks.amazonaws.com/role-arn: <Auto scaler role arn>
 
 ```
 
-7.  Add the helm repo autoscaler
+6.  Add the helm repo autoscaler
 
 ```
 helm repo add autoscaler https://kubernetes.github.io/autoscaler
@@ -115,7 +112,7 @@ helm repo update
 
 ```
 
-8. Install the autoscaler helm chart
+7. Install the autoscaler helm chart
 
 ```
 helm upgrade --install cluster-autoscaler autoscaler/cluster-autoscaler \
@@ -131,3 +128,11 @@ helm upgrade --install cluster-autoscaler autoscaler/cluster-autoscaler \
 ```
 
 9. kubectl -n kube-system get pods | grep cluster-autoscaler
+
+10. Let's scale our deployment
+
+```
+kubectl scale deployment stress-test --replicas=20
+
+```
+
