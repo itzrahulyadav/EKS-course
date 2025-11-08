@@ -14,7 +14,7 @@
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
         "StringEquals": {
-          "<OIDC_PROVIDER>:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa",
+          "<OIDC_PROVIDER>:sub": "system:serviceaccount:kube-system:cluster-autoscaler-sa",
           "<OIDC_PROVIDER>:aud": "sts.amazonaws.com"
         }
       }
