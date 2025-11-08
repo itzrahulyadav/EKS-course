@@ -1,0 +1,133 @@
+# Create a role for cluster autoscaler
+
+1. Create a `trust-policy.json`
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<YOUR_ACCOUNT_ID>:oidc-provider/<OIDC_PROVIDER>"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "<OIDC_PROVIDER>:sub": "system:serviceaccount:kube-system:ebs-csi-controller-sa",
+          "<OIDC_PROVIDER>:aud": "sts.amazonaws.com"
+        }
+      }
+    }
+  ]
+}
+
+```
+2.  Create a role using the trust-policy created above
+   
+```
+aws iam create-role \
+  --role-name AutoscalerRole \
+  --assume-role-policy-document file://trust-policy.json \
+  --description "IAM role for EBS CSI driver in EKS"
+
+```
+
+3. Use the following permission policy and create a file called `cluster-autoscaler-policy.json`
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "autoscaling:DescribeAutoScalingGroups",
+        "autoscaling:DescribeAutoScalingInstances",
+        "autoscaling:DescribeLaunchConfigurations",
+        "autoscaling:DescribeScalingActivities",
+        "ec2:DescribeImages",
+        "ec2:DescribeInstanceTypes",
+        "ec2:DescribeLaunchTemplateVersions",
+        "ec2:GetInstanceTypesFromInstanceRequirements",
+        "eks:DescribeNodegroup"
+      ],
+      "Resource": ["*"]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "autoscaling:SetDesiredCapacity",
+        "autoscaling:TerminateInstanceInAutoScalingGroup"
+      ],
+      "Resource": ["*"]
+    }
+  ]
+}
+
+```
+
+4. Create a cluster-policy
+
+```
+aws iam create-policy \
+  --policy-name AmazonEKSClusterAutoscalerPolicy \
+  --policy-document file://cluster-autoscaler-policy.json
+  
+```
+
+5. Attach the policy to the role
+
+```
+aws iam attach-role-policy \
+  --role-name AutoscalerRole \
+  --policy-arn arn:aws:iam::<account-id>:policy/AmazonEKSClusterAutoscalerPolicy
+
+```
+
+5.1 Create service-account 
+
+```
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cluster-autoscaler-sa
+  namespace: kube-system
+  annotations:
+    eks.amazonaws.com/role-arn: <load balancer controller role arn>
+
+```
+6. Tag auto scaling group
+
+```
+aws autoscaling create-or-update-tags --tags \
+ResourceId=<your-asg-name>,ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/enabled,Value=true,PropagateAtLaunch=true \
+ResourceId=<your-asg-name>,ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/<your-cluster-name>,Value=true,PropagateAtLaunch=true
+
+
+```
+
+7.  Add the helm repo autoscaler
+
+```
+helm repo add autoscaler https://kubernetes.github.io/autoscaler
+helm repo update
+
+```
+
+8. Install the autoscaler helm chart
+
+```
+helm upgrade --install cluster-autoscaler autoscaler/cluster-autoscaler \
+  --namespace kube-system \
+  --set autoDiscovery.clusterName=<your-cluster-name> \
+  --set awsRegion=<your-region> \
+  --set cloudProvider=aws \
+  --set rbac.serviceAccount.create=false \
+  --set rbac.serviceAccount.name=cluster-autoscaler-sa \
+  --set extraArgs.balance-similar-node-groups=true \
+  --set extraArgs.skip-nodes-with-system-pods=false
+
+```
+
+9. kubectl -n kube-system get pods | grep cluster-autoscaler
