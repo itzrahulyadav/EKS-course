@@ -44,7 +44,15 @@ kubectl create configmap fluent-bit-cluster-info \
 3. Add the managed permission policy `CloudWatchAgentServerPolicy`
 
 
-4. Annotate the service account
+
+4.  Install fluentbit
+
+```
+kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/fluent-bit/fluent-bit.yaml
+```
+
+
+5. Annotate the service account
 
 ```
 kubectl annotate serviceaccount \
@@ -55,14 +63,8 @@ kubectl annotate serviceaccount \
 
 ```
 
-3.  Install fluentbit
 
-```
-kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/fluent-bit/fluent-bit.yaml
-```
-
-
-4. create a deployment
+6. create a deployment
 
 ```
 apiVersion: apps/v1
