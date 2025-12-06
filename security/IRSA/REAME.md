@@ -9,7 +9,6 @@ metadata:
   name: aws-cli
   namespace: default
 spec:
-  serviceAccountName: demo-sa
   containers:
   - name: aws-cli
     image: amazon/aws-cli
