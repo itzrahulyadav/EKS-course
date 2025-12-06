@@ -131,5 +131,22 @@ aws sts get-caller-identity
 aws s3 ls
 
 ```
+8. Add service account to the pod manifest that was created earlier.
 
-8. Delete the cloudformation stack
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: aws-cli
+  namespace: default
+spec:
+  serviceAccountName: demo-sa
+  containers:
+  - name: aws-cli
+    image: amazon/aws-cli
+    command: [ "sleep", "3600" ]
+
+
+```
+
+9. Delete the cloudformation stack
