@@ -103,6 +103,27 @@ kubectl annotate sa demo-sa \
 
 ```
 
+
+
+Your service account would look something like this after annotating it
+
+```
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  creationTimestamp: "2025-01-01T12:00:00Z"
+  name: s3-sa
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::<ACCOUNT_ID>:role/demo-irsa-role
+  uid: 12345678-1234-1234-1234-1234567890ab
+secrets:
+- name: demo-sa-token-abcde
+
+```
+
+
+
 7.  Delete and recreate the pods
 
 ```
