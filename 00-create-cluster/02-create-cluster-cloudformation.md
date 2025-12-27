@@ -1,4 +1,4 @@
-## Create cluster using Cloudformation template.
+3## Create cluster using Cloudformation template.
 
 1. Go to s3 console and create a new s3 bucket.
 2. Upload the cloudformation.yaml file downloaded from the github
@@ -17,3 +17,7 @@
 15. Select `Preserve successfully provisioned resources` in the Stack failure options
 16. Select the checkbox `I acknowledge that AWS CloudFormation might create IAM resources with custom names` to allow cloudformation to create resources in your behalf.
 17. Scroll to the bottom in the Review and create page and click on create.
+
+
+NOTE: If you want to access other aws services like s3 or iam from your kubectl server you need to add extra permissions to your ec2 role (instance profile) , so add `AdministratorAccess` for simplicity or create granualar permission policy.
+
