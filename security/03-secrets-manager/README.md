@@ -96,7 +96,35 @@ aws secretsmanager create-secret \
 
 ```
 
+
+
 2.  Create IAM Role for ASCP (IRSA or Pod Identity)
+
+- use the following trust policy.
+
+```
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<YOUR_ACCOUNT_ID>:oidc-provider/<OIDC_PROVIDER>"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "<OIDC_PROVIDER>:sub": "system:serviceaccount:default:get-secret-sa",
+          "<OIDC_PROVIDER>:aud": "sts.amazonaws.com"
+        }
+      }
+    }
+  ]
+}
+
+```
+
+- Add the following permissions
 
 ```
 {
@@ -158,7 +186,25 @@ spec:
           - path: password
             objectAlias: DB_PASSWORD
 
+
 ```
+
+ Create a service-account
+ 
+```
+kubectl create sa get-secret-sa
+
+```
+
+Annotate the service account
+
+```
+kubectl annotate serviceaccount get-secret-sa eks.amazonaws.com/role-arn=<role_arn>
+
+```
+
+
+
 
 7.  Create a deployment with the new configs
 
@@ -178,7 +224,7 @@ spec:
       labels:
         app: nginx-ascp-demo
     spec:
-      serviceAccountName: secrets-demo-sa   # IRSA / Pod Identity
+      serviceAccountName: get-secret-sa
       containers:
       - name: nginx
         image: nginx:alpine
