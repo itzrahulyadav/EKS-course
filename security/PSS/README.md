@@ -1,3 +1,9 @@
+
+
+Pod Security Standards (PSS) are a set of predefined security profiles in Kubernetes that define how “restricted” a Pod can be in terms of security settings.
+
+They were introduced to replace PodSecurityPolicy
+
 # Privileged PSS
 
 ## Create a deployment 
