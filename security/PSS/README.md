@@ -6,6 +6,18 @@ They were introduced to replace PodSecurityPolicy
 
 # Privileged PSS
 
+Privileged (Least Restrictive)
+
+- Allows almost everything
+- For system-level workloads
+- Can run as root
+- Can use host networking, host PID, hostPath, etc.
+
+Use case:
+- CNI plugins
+- CSI drivers
+- Node-level agents
+
 ## Create a deployment 
 
 1. Create a file called privileged-demo.yaml
@@ -55,6 +67,20 @@ id
 
 ## Baseline PSS
 
+
+Prevents common privilege escalation:
+
+- ❌ No hostPID / hostIPC
+- ❌ Restricted hostPath usage
+- ❌ No dangerous Linux capabilities
+- ❌ No privileged containers
+
+
+But: May still run as root
+
+Use case: Most regular application workloads
+
+
 1. Label the namespace
 
 ```
@@ -83,6 +109,17 @@ privileged (container "nginx" must not set securityContext.privileged=true)
 ```
 
 ## Restricted PSS
+
+Very strict:
+- ❌ Must use seccomp
+- ❌ Limited volume types
+- ❌ No privileged containers
+- ❌ No privilege escalation
+- ❌ Must NOT run as root
+
+Use case:
+- Production workloads
+- Multi-tenant clusters
 
 1. Label the namespace
 
