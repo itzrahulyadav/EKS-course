@@ -39,6 +39,8 @@ helm repo update
 
 helm install kyverno kyverno/kyverno -n kyverno --create-namespace
 
+kubectl api-resources | grep kyverno
+
 ```
 
 2. Check kyverno pods
