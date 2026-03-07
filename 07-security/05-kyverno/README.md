@@ -132,23 +132,29 @@ spec:
 Mutate the pods
 
 ```
-apiVersion: policies.kyverno.io/v1alpha1
+apiVersion: policies.kyverno.io/v1
 kind: MutatingPolicy
 metadata:
-  name: add-environment-label
+  name: add-label
 spec:
   matchConstraints:
     resourceRules:
-    - apiGroups: [""]
-      apiVersions: ["v1"]
-      operations: ["CREATE"]
-      resources: ["pods"]
+      - apiGroups: ['']
+        apiVersions: ['v1']
+        operations: ['CREATE']
+        resources: ['pods']
   mutations:
-  - patchType: ApplyConfiguration
-    applyConfiguration:
-      metadata:
-        labels:
-          environment: dev
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >
+          Object{
+            metadata: Object.metadata{
+              labels: Object.metadata.labels{
+                foo: "bar"
+              }
+            }
+          }
+
 ```
 
 2. Try creating a pod, labels will be added automatically
