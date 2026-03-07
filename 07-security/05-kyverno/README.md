@@ -55,7 +55,7 @@ kubectl get pods -n kyverno
 1. Block privileged containers
 
 ```
-apiVersion: policies.kyverno.io/v1alpha1
+apiVersion: policies.kyverno.io/v1
 kind: ValidatingPolicy
 metadata:
   name: disallow-privileged
@@ -73,6 +73,7 @@ spec:
     message: "Privileged containers are not allowed"
 
 ```
+Verify using this command: `kubectl get validatingpolicies`
 
 2. Try creating a pod
 
