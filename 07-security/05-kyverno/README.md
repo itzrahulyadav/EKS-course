@@ -97,30 +97,31 @@ spec:
 Auto create network policies
 
 ```
-apiVersion: policies.kyverno.io/v1alpha1
+apiVersion: policies.kyverno.io/v1
 kind: GeneratingPolicy
 metadata:
   name: default-network-policy
 spec:
   matchConstraints:
     resourceRules:
-    - apiGroups: [""]
-      apiVersions: ["v1"]
-      operations: ["CREATE"]
-      resources: ["namespaces"]
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["namespaces"]
 
-  generate:
-    synchronize: true
-    apiVersion: networking.k8s.io/v1
-    kind: NetworkPolicy
-    name: default-deny
-    namespace: "{{ object.metadata.name }}"
-    data:
-      spec:
-        podSelector: {}
-        policyTypes:
-        - Ingress
-        - Egress
+  generations:
+    - generate:
+        apiVersion: networking.k8s.io/v1
+        kind: NetworkPolicy
+        name: default-deny
+        namespace: "{{ object.metadata.name }}"
+        synchronize: true
+        data:
+          spec:
+            podSelector: {}
+            policyTypes:
+              - Ingress
+              - Egress
 ```
 
 2. Try creating a pod
