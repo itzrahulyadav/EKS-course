@@ -53,25 +53,22 @@ kubectl get pods -n kyverno
 1. Block privileged containers
 
 ```
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1alpha1
+kind: ValidatingPolicy
 metadata:
-  name: block-privileged-containers
+  name: disallow-privileged
 spec:
-  validationFailureAction: Enforce
-  rules:
-  - name: privileged-containers
-    match:
-      resources:
-        kinds:
-        - Pod
-    validate:
-      message: "Privileged containers are not allowed"
-      pattern:
-        spec:
-          containers:
-          - =(securityContext):
-              =(privileged): "false"
+  validationActions:
+    - Deny
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["CREATE","UPDATE"]
+      resources: ["pods"]
+  validations:
+  - expression: "object.spec.containers.all(c, !has(c.securityContext) || c.securityContext.privileged == false)"
+    message: "Privileged containers are not allowed"
 
 ```
 
@@ -94,30 +91,33 @@ spec:
 
 # Demo 2
 
-Force Resource limits
+Auto create network policies
 
 ```
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1alpha1
+kind: GeneratingPolicy
 metadata:
-  name: require-resource-limits
+  name: default-network-policy
 spec:
-  validationFailureAction: Enforce
-  rules:
-  - name: check-resources
-    match:
-      resources:
-        kinds:
-        - Pod
-    validate:
-      message: "CPU and memory limits are required"
-      pattern:
-        spec:
-          containers:
-          - resources:
-              limits:
-                memory: "?*"
-                cpu: "?*"
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["CREATE"]
+      resources: ["namespaces"]
+
+  generate:
+    synchronize: true
+    apiVersion: networking.k8s.io/v1
+    kind: NetworkPolicy
+    name: default-deny
+    namespace: "{{ object.metadata.name }}"
+    data:
+      spec:
+        podSelector: {}
+        policyTypes:
+        - Ingress
+        - Egress
 ```
 
 2. Try creating a pod
@@ -128,22 +128,23 @@ spec:
 Mutate the pods
 
 ```
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1alpha1
+kind: MutatingPolicy
 metadata:
-  name: add-env-label
+  name: add-environment-label
 spec:
-  rules:
-  - name: add-label
-    match:
-      resources:
-        kinds:
-        - Pod
-    mutate:
-      patchStrategicMerge:
-        metadata:
-          labels:
-            environment: dev
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["CREATE"]
+      resources: ["pods"]
+  mutations:
+  - patchType: ApplyConfiguration
+    applyConfiguration:
+      metadata:
+        labels:
+          environment: dev
 ```
 
 2. Try creating a pod, labels will be added automatically
@@ -154,24 +155,22 @@ spec:
 Allow only trusted container registries
 
 ```
-apiVersion: kyverno.io/v1
-kind: ClusterPolicy
+apiVersion: policies.kyverno.io/v1alpha1
+kind: ImageValidatingPolicy
 metadata:
-  name: trusted-registry
+  name: allow-only-ecr
 spec:
-  validationFailureAction: Enforce
-  rules:
-  - name: check-registry
-    match:
-      resources:
-        kinds:
-        - Pod
-    validate:
-      message: "Images must come from ECR"
-      pattern:
-        spec:
-          containers:
-          - image: "*.amazonaws.com/*"
+  validationActions:
+    - Deny
+  matchConstraints:
+    resourceRules:
+    - apiGroups: [""]
+      apiVersions: ["v1"]
+      operations: ["CREATE"]
+      resources: ["pods"]
+  validations:
+  - expression: "object.spec.containers.all(c, c.image.startsWith('123456789.dkr.ecr.ap-south-1.amazonaws.com/'))"
+    message: "Images must come from ECR"
 
 ```
 
