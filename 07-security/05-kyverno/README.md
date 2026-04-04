@@ -109,19 +109,30 @@ spec:
         operations: ["CREATE"]
         resources: ["namespaces"]
 
-  generations:
-    - generate:
-        apiVersion: networking.k8s.io/v1
-        kind: NetworkPolicy
-        name: default-deny
-        namespace: "{{ object.metadata.name }}"
-        synchronize: true
-        data:
-          spec:
-            podSelector: {}
-            policyTypes:
-              - Ingress
-              - Egress
+  variables:
+    - name: nsName
+      expression: "object.metadata.name"
+
+    - name: downstream
+      expression: >-
+        [
+          {
+            "kind": dyn("NetworkPolicy"),
+            "apiVersion": dyn("networking.k8s.io/v1"),
+            "metadata": dyn({
+              "name": "default-deny",
+              "namespace": string(variables.nsName)
+            }),
+            "spec": dyn({
+              "podSelector": dyn({}),
+              "policyTypes": dyn(["Ingress", "Egress"])
+            })
+          }
+        ]
+
+  generate:
+    - expression: generator.Apply(variables.nsName, variables.downstream)
+
 ```
 
 2. Try creating a pod
