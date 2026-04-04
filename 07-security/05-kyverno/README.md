@@ -176,22 +176,27 @@ spec:
 Allow only trusted container registries
 
 ```
-apiVersion: policies.kyverno.io/v1alpha1
-kind: ImageValidatingPolicy
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
 metadata:
   name: allow-only-ecr
 spec:
   validationActions:
     - Deny
+
   matchConstraints:
     resourceRules:
-    - apiGroups: [""]
-      apiVersions: ["v1"]
-      operations: ["CREATE"]
-      resources: ["pods"]
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+
   validations:
-  - expression: "object.spec.containers.all(c, c.image.startsWith('123456789.dkr.ecr.ap-south-1.amazonaws.com/'))"
-    message: "Images must come from ECR"
+    - expression: >
+        object.spec.containers.all(c,
+          c.image.matches("^[0-9]+\\.dkr\\.ecr\\.[a-z0-9-]+\\.amazonaws\\.com/.*")
+        )
+      message: "Only AWS ECR images are allowed"
 
 ```
 
